@@ -8,12 +8,19 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var walkingStatus = "Idle"
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Text("Sightline")
+            Text(walkingStatus)
+            Button("Start Walking Mode") {
+                walkingStatus = "Walking mode active"
+            }
+            Button("Stop") {
+                walkingStatus = "Idle"
+            }
+
+
         }
         .padding()
     }
