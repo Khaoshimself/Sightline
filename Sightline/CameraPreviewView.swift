@@ -6,13 +6,31 @@
 //
 
 import SwiftUI
+import AVFoundation
 
-struct CameraPreviewView: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+struct CameraPreviewView: UIViewRepresentable {
+    let session: AVCaptureSession
+    
+    func makeUIView(context: Context) -> CameraPreviewUIView {
+        let view = CameraPreviewUIView()
+        
+        // Assign session to view.previewLayer.session.
+        view.previewLayer.session = session
+        // Set view.previewLayer.videoGravity to .resizeAspectFill.
+        view.previewLayer.videoGravity = .resizeAspectFill
+        
+        return view
+    }
+    
+    func updateUIView(
+        _ uiView: CameraPreviewUIView,
+        context: Context
+    ) {
+        // Assign session to uiView.previewLayer.session.
+        uiView.previewLayer.session = session
     }
 }
 
 #Preview {
-    CameraPreviewView()
+    CameraPreviewView(session: AVCaptureSession())
 }
