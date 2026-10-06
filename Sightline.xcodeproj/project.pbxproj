@@ -263,6 +263,8 @@
 				INFOPLIST_FILE = Sightline/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Sightline uses the camera to identify nearby objects and describe your surroundings.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Sightline uses the microphone to hear your spoken commands and questions.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Sightline uses speech recognition to turn your spoken commands and questions into text.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -299,6 +301,8 @@
 				INFOPLIST_FILE = Sightline/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Sightline uses the camera to identify nearby objects and describe your surroundings.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Sightline uses the microphone to hear your spoken commands and questions.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Sightline uses speech recognition to turn your spoken commands and questions into text.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

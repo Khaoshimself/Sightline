@@ -2,6 +2,7 @@
 import AVFoundation
 import QuartzCore
 import Combine
+import CoreImage
 
 // This object manages the camera.
 //
@@ -38,6 +39,64 @@ class CameraManager: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, Obs
     // Gives our code access to individual video frames.
     // The preview alone displays video but doesn't deliver frames to us.
     private let videoOutput = AVCaptureVideoDataOutput()
+    
+    private let snapshotContext = CIContext()
+    private var snapshotRequest: (
+        id: UUID,
+        completion: (Data?) -> Void
+    )?
+
+    // Request one new camera frame.
+    func captureSnapshot(completion: @escaping (Data?) -> Void) {
+        frameQueue.async {
+            guard self.snapshotRequest == nil else {
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+
+            let id = UUID()
+            self.snapshotRequest = (id, completion)
+
+            // Return nil if the camera doesn't deliver a frame.
+            self.frameQueue.asyncAfter(deadline: .now() + 2) {
+                guard self.snapshotRequest?.id == id else { return }
+                self.finishSnapshot(nil)
+            }
+        }
+    }
+
+    // Deliver the result on the main queue.
+    private func finishSnapshot(_ data: Data?) {
+        guard let request = snapshotRequest else { return }
+
+        snapshotRequest = nil
+        DispatchQueue.main.async {
+            request.completion(data)
+        }
+    }
+
+    private func makeSnapshot(
+        from pixelBuffer: CVPixelBuffer
+    ) -> Data? {
+        // Match your detector's orientation: phone held upright.
+        let image = CIImage(cvPixelBuffer: pixelBuffer)
+            .oriented(.right)
+
+        // Resize for a smaller upload.
+        let longestEdge = max(image.extent.width, image.extent.height)
+        guard longestEdge > 0 else { return nil }
+
+        let scale = min(1, 1024 / longestEdge)
+        let resized = image.transformed(
+            by: CGAffineTransform(scaleX: scale, y: scale)
+        )
+
+        return snapshotContext.jpegRepresentation(
+            of: resized,
+            colorSpace: CGColorSpaceCreateDeviceRGB(),
+            options: [:]
+        )
+    }
 
     // Called after ContentView confirms camera permission.
     func start() {
@@ -56,6 +115,10 @@ class CameraManager: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, Obs
 
     // Called when the user taps Stop or the view disappears.
     func stop() {
+        frameQueue.async {
+            self.finishSnapshot(nil)
+        }
+        
         sessionQueue.async {
             if self.session.isRunning {
                 self.session.stopRunning()
@@ -73,6 +136,11 @@ class CameraManager: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, Obs
     ) {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return
+        }
+        
+        // Handle snapshots before the detection-rate limit.
+        if snapshotRequest != nil {
+            finishSnapshot(makeSnapshot(from: pixelBuffer))
         }
         
         let width = CVPixelBufferGetWidth(pixelBuffer)
