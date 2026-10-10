@@ -2,25 +2,73 @@ import Foundation
 
 struct VoiceCommandParser {
     func command(from transcript: String) -> String? {
-        // Ignore capitalization.
-        let lowercaseText = transcript.lowercased()
-
-        // Separate words at spaces and punctuation.
-        let words = lowercaseText.split { character in
-            !character.isLetter && !character.isNumber
+        let words = transcript.lowercased().split {
+            !$0.isLetter && !$0.isNumber
         }
 
-        // Only accept speech beginning with the exact word "Sightline".
-        guard words.first == "sightline" else {
+        // Earlier speech can precede the command in a running transcript.
+        guard let wakeIndex = words.lastIndex(of: "sightline") else {
             return nil
         }
 
-        // "Sightline" alone doesn't contain a command.
-        guard words.count > 1 else {
+        let commandWords = words.dropFirst(wakeIndex + 1)
+        guard !commandWords.isEmpty else { return nil }
+        return commandWords.joined(separator: " ")
+    }
+
+    func isSceneDescription(_ command: String) -> Bool {
+        [
+            "describe",
+            "describe the scene",
+            "describe what is ahead",
+            "describe what s ahead",
+            "describe whats ahead",
+            "what is ahead",
+            "what s ahead",
+            "whats ahead",
+        ].contains(command)
+    }
+
+    func isStop(_ command: String) -> Bool {
+        [
+            "stop",
+            "stop walking",
+            "stop walking mode",
+        ].contains(command)
+    }
+
+    func target(from command: String) -> String? {
+        let prefixes = [
+            "find me a ",
+            "find me the ",
+            "find me ",
+            "find a ",
+            "find the ",
+            "find ",
+        ]
+
+        guard let prefix = prefixes.first(
+            where: { command.hasPrefix($0) }
+        ) else {
             return nil
         }
 
-        // Remove the activation phrase and return the remaining words.
-        return words.dropFirst().joined(separator: " ")
+        let target = String(command.dropFirst(prefix.count))
+
+        let objects = [
+            "chair",
+            "person",
+            "bottle",
+            "backpack",
+            "car",
+        ]
+
+        return objects.contains(target) ? target : nil
+    }
+
+    func isSupportedCommand(_ command: String) -> Bool {
+        isStop(command)
+            || isSceneDescription(command)
+            || target(from: command) != nil
     }
 }

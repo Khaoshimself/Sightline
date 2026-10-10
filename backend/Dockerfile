@@ -1,0 +1,9 @@
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.lock.txt .
+RUN pip install --no-cache-dir -r requirements.lock.txt
+RUN useradd --create-home --uid 10001 sightline
+COPY main.py .
+USER sightline
+EXPOSE 3000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3000"]

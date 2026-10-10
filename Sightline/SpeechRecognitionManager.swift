@@ -8,6 +8,9 @@ import Foundation
 class SpeechRecognitionManager: ObservableObject {
     @Published private(set) var transcript = ""
     @Published private(set) var isListening = false
+    @Published private(set) var lastError: String?
+    private var recoveryAttempts = 0
+    private var recoveryTask: Task<Void, Never>?
 
     private let audioEngine = AVAudioEngine()
 
@@ -15,6 +18,7 @@ class SpeechRecognitionManager: ObservableObject {
     private let audioSessionQueue = DispatchQueue(
         label: "sightline.audioSession"
     )
+
     private var audioStartupTask: Task<Void, Never>?
 
     private let speechRecognizer = SFSpeechRecognizer()
@@ -23,7 +27,9 @@ class SpeechRecognitionManager: ObservableObject {
     var onCommand: ((String) -> Void)?
     var onRecognitionFinished: (() -> Void)?
 
-    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var recognitionRequest:
+        SFSpeechAudioBufferRecognitionRequest?
+
     private var recognitionTask: SFSpeechRecognitionTask?
     private var isInputTapInstalled = false
 
@@ -45,6 +51,8 @@ class SpeechRecognitionManager: ObservableObject {
             return
         }
 
+        lastError = nil
+        recoveryAttempts = 0
         let requestID = UUID()
         permissionRequestID = requestID
 
@@ -58,19 +66,25 @@ class SpeechRecognitionManager: ObservableObject {
                 switch status {
                 case .authorized:
                     print("Speech recognition authorized")
-                    self.requestMicrophonePermission(requestID: requestID)
+                    self.requestMicrophonePermission(
+                        requestID: requestID
+                    )
 
                 case .denied:
                     self.permissionRequestID = nil
+                    self.lastError = "Speech recognition is off. Enable it in Settings."
                     print("Speech recognition permission denied")
 
                 case .restricted:
                     self.permissionRequestID = nil
+                    self.lastError = "Speech recognition is restricted on this device."
                     print("Speech recognition is restricted")
 
                 case .notDetermined:
                     self.permissionRequestID = nil
-                    print("Speech recognition permission not determined")
+                    print(
+                        "Speech recognition permission not determined"
+                    )
 
                 @unknown default:
                     self.permissionRequestID = nil
@@ -81,7 +95,9 @@ class SpeechRecognitionManager: ObservableObject {
     }
 
     private func requestMicrophonePermission(requestID: UUID) {
-        AVAudioApplication.requestRecordPermission { [weak self] granted in
+        AVAudioApplication.requestRecordPermission {
+            [weak self] granted in
+
             DispatchQueue.main.async {
                 // Ignore permission answers after Stop.
                 guard let self = self,
@@ -95,6 +111,7 @@ class SpeechRecognitionManager: ObservableObject {
                     print("Both permissions granted")
                     self.startListening()
                 } else {
+                    self.lastError = "Microphone access is off. Enable it in Settings."
                     print("Microphone permission denied")
                 }
             }
@@ -129,14 +146,16 @@ class SpeechRecognitionManager: ObservableObject {
                         } else if activated {
                             continuation.resume(returning: ())
                         } else {
-                            continuation.resume(throwing: NSError(
-                                domain: "Sightline.AudioSession",
-                                code: 1,
-                                userInfo: [
-                                    NSLocalizedDescriptionKey:
-                                        "The audio session did not activate."
-                                ]
-                            ))
+                            continuation.resume(
+                                throwing: NSError(
+                                    domain: "Sightline.AudioSession",
+                                    code: 1,
+                                    userInfo: [
+                                        NSLocalizedDescriptionKey:
+                                            "The audio session did not activate."
+                                    ]
+                                )
+                            )
                         }
                     }
                 } catch {
@@ -155,13 +174,13 @@ class SpeechRecognitionManager: ObservableObject {
 
         guard let recognizer = speechRecognizer,
               recognizer.isAvailable else {
+            lastError = "Speech recognition is unavailable. Tap Resume Voice to retry."
             print("Speech recognition is unavailable")
             return
         }
 
         let sessionID = UUID()
         activeSessionID = sessionID
-        transcript = ""
 
         audioStartupTask = Task { @MainActor [weak self] in
             guard let self = self,
@@ -259,8 +278,11 @@ class SpeechRecognitionManager: ObservableObject {
                     }
 
                     if let errorMessage = errorMessage {
-                        print("Speech recognition failed:", errorMessage)
-                        self.stopListening()
+                        print(
+                            "Speech recognition failed:",
+                            errorMessage
+                        )
+                        self.recoverAfterError(errorMessage)
                         return
                     }
 
@@ -269,6 +291,7 @@ class SpeechRecognitionManager: ObservableObject {
                            in: .whitespacesAndNewlines
                        ).isEmpty {
                         self.transcript = text
+
                         self.scheduleCommand(
                             from: text,
                             sessionID: sessionID
@@ -287,6 +310,7 @@ class SpeechRecognitionManager: ObservableObject {
             audioEngine.prepare()
             try audioEngine.start()
             isListening = true
+            lastError = nil
 
             print("Audio engine running:", audioEngine.isRunning)
         } catch {
@@ -300,6 +324,9 @@ class SpeechRecognitionManager: ObservableObject {
     func stopListening() {
         // Invalidate startup before canceling its task.
         activeSessionID = nil
+        recoveryTask?.cancel()
+        recoveryTask = nil
+
         audioStartupTask?.cancel()
         audioStartupTask = nil
 
@@ -329,6 +356,23 @@ class SpeechRecognitionManager: ObservableObject {
         // Leave the shared audio session active for spoken output.
     }
 
+    private func recoverAfterError(_ message: String) {
+        stopListening()
+        lastError = "Voice recognition paused. " + message
+        guard recoveryAttempts < 2 else { return }
+        recoveryAttempts += 1
+        let recoveryID = UUID()
+        activeSessionID = recoveryID
+        recoveryTask = Task { @MainActor [weak self] in
+            do { try await Task.sleep(for: .seconds(1)) } catch { return }
+            guard let self, !Task.isCancelled,
+                  self.activeSessionID == recoveryID else { return }
+            self.activeSessionID = nil
+            self.recoveryTask = nil
+            self.startListening()
+        }
+    }
+
     // MARK: - Command Delivery
 
     private func scheduleCommand(
@@ -346,6 +390,7 @@ class SpeechRecognitionManager: ObservableObject {
         }
 
         lastCommandText = normalized
+
         pendingCommandTask?.cancel()
         pendingCommandTask = nil
 
@@ -355,29 +400,8 @@ class SpeechRecognitionManager: ObservableObject {
             return
         }
 
-        // Accept complete find commands for our supported objects.
-        let prefixes = [
-            "find me a ",
-            "find me the ",
-            "find me ",
-            "find a ",
-            "find the ",
-            "find "
-        ]
-
-        let supportedObjects: Set<String> = [
-            "chair", "person", "bottle", "backpack", "car"
-        ]
-
-        guard let prefix = prefixes.first(
-            where: { command.hasPrefix($0) }
-        ) else {
-            return
-        }
-
-        let target = String(command.dropFirst(prefix.count))
-
-        guard supportedObjects.contains(target) else {
+        // Local find requests and Gemini requests use this path.
+        guard commandParser.isSupportedCommand(command) else {
             return
         }
 

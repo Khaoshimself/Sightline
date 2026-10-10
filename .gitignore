@@ -1,0 +1,15 @@
+# Local credentials and generated files
+.env
+.env.*
+!.env.example
+Sightline/BackendConfiguration.local.plist
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# Personal SSH configuration accidentally placed inside the app folder
+Sightline/config

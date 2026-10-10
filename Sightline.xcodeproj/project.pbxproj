@@ -6,8 +6,22 @@
 	objectVersion = 110;
 	objects = {
 
+/* Begin PBXBuildFile section */
+A17E00000000000000000002 = {isa = PBXBuildFile; fileRef = A17E00000000000000000001; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+A17E0000000000000000000B = {isa = PBXContainerItemProxy; containerPortal = 93BE58AE30715E3000F70610; proxyType = 1; remoteGlobalIDString = 93BE58B530715E3000F70610; remoteInfo = Sightline; };
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+A17E0000000000000000000C = {isa = PBXTargetDependency; target = 93BE58B530715E3000F70610; targetProxy = A17E0000000000000000000B; };
+/* End PBXTargetDependency section */
+
 /* Begin PBXFileReference section */
 		93BE58B630715E3000F70610 /* Sightline.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sightline.app; sourceTree = BUILT_PRODUCTS_DIR; };
+A17E00000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SightlineUITests/SightlineUITests.swift; sourceTree = "<group>"; };
+A17E00000000000000000003 = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = SightlineUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -15,6 +29,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				config,
 			);
 			target = 93BE58B530715E3000F70610 /* Sightline */;
 		};
@@ -37,12 +52,14 @@
 			files = (
 			);
 		};
+A17E00000000000000000006 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		93BE58AD30715E3000F70610 = {
 			isa = PBXGroup;
 			children = (
+				A17E00000000000000000001,
 				93BE58B830715E3000F70610 /* Sightline */,
 				93BE58B730715E3000F70610 /* Products */,
 			);
@@ -51,6 +68,7 @@
 		93BE58B730715E3000F70610 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				A17E00000000000000000003,
 				93BE58B630715E3000F70610 /* Sightline.app */,
 			);
 			name = Products;
@@ -77,6 +95,7 @@
 			productReference = 93BE58B630715E3000F70610 /* Sightline.app */;
 			productType = "com.apple.product-type.application";
 		};
+A17E00000000000000000004 = {isa = PBXNativeTarget; buildConfigurationList = A17E0000000000000000000A; buildPhases = (A17E00000000000000000005, A17E00000000000000000006, A17E00000000000000000007,); buildRules = (); dependencies = (A17E0000000000000000000C,); name = SightlineUITests; productName = SightlineUITests; productReference = A17E00000000000000000003; productType = "com.apple.product-type.bundle.ui-testing"; };
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -106,6 +125,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				A17E00000000000000000004,
 				93BE58B530715E3000F70610 /* Sightline */,
 			);
 		};
@@ -117,6 +137,7 @@
 			files = (
 			);
 		};
+A17E00000000000000000007 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -125,6 +146,7 @@
 			files = (
 			);
 		};
+A17E00000000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A17E00000000000000000002,); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
@@ -263,6 +285,7 @@
 				INFOPLIST_FILE = Sightline/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Sightline uses the camera to identify nearby objects and describe your surroundings.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Sightline connects to your Mac to describe camera snapshots.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Sightline uses the microphone to hear your spoken commands and questions.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Sightline uses speech recognition to turn your spoken commands and questions into text.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -301,6 +324,7 @@
 				INFOPLIST_FILE = Sightline/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Sightline uses the camera to identify nearby objects and describe your surroundings.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Sightline connects to your Mac to describe camera snapshots.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Sightline uses the microphone to hear your spoken commands and questions.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Sightline uses speech recognition to turn your spoken commands and questions into text.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -325,6 +349,8 @@
 			};
 			name = Release;
 		};
+A17E00000000000000000008 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 27.0; PRODUCT_BUNDLE_IDENTIFIER = khaos.SightlineUITests; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; TEST_TARGET_NAME = Sightline; }; name = Debug; };
+A17E00000000000000000009 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 27.0; PRODUCT_BUNDLE_IDENTIFIER = khaos.SightlineUITests; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; TEST_TARGET_NAME = Sightline; }; name = Release; };
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -344,6 +370,7 @@
 			);
 			defaultConfigurationName = Release;
 		};
+A17E0000000000000000000A = {isa = XCConfigurationList; buildConfigurations = (A17E00000000000000000008, A17E00000000000000000009,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 /* End XCConfigurationList section */
 	};
 	rootObject = 93BE58AE30715E3000F70610 /* Project object */;
